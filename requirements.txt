@@ -2,3 +2,6 @@ requests
 beautifulsoup4
 boto3
 psycopg2
+pylint
+pgadmin4
+black
