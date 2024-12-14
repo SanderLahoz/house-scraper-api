@@ -1,4 +1,4 @@
-#!C:\Users\sande\Documents\GitHub\house-scraper-api\venv\Scripts\python.exe
+#!C:\Users\sande\Documents\GitHub\house-scraperBoligsiden-api\venv\Scripts\python.exe
 
 import sys
 import json

@@ -1,4 +1,5 @@
-from scraper.scraper import test_scraper
+from scraperBoligsiden.scraper import scraper_boligsiden
+
 
 if __name__ == "__main__":
-    test_scraper()
+    scraper_boligsiden("2000")
