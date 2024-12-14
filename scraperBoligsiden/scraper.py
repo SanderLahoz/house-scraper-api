@@ -1,8 +1,10 @@
 import requests
 import random
 import json
+import logging
 
 from requests import Response
+from requests.exceptions import ProxyError, Timeout
 from bs4 import BeautifulSoup
 
 
@@ -12,7 +14,7 @@ class Scraper:
     def get_url(postal_code: str, page_number: int) -> str:
         """Returns the appropriate url to scrape from the website 'boligsiden'
         using two different variables postal_code and page_number"""
-        return f"https://www.boligsiden.dk/postnummer/{postal_code}/tilsalg/villa,ejerlejlighed,raekkehus,villalejlighed,landejendom?page={page_number}"
+        return f"https://www.boligsiden.dk/postnummer/{postal_code}/tilsalg/villa,ejerlejlighed,raekkehus,villalejlighed?page={page_number}"
 
     @staticmethod
     def get_proxy() -> str:
@@ -95,12 +97,39 @@ class Scraper:
                    '192.177.93.83:3128', '23.108.64.86:8118', '172.241.137.74:8118', '172.241.137.169:8118',
                    '154.202.108.19:3128', '23.108.42.10:8118', '172.241.192.48:8118', '154.201.62.185:3128',
                    '154.201.63.33:3128', '154.201.62.51:3128', '23.108.77.235:8118']
-        return random.choice(proxies)
+
+        while True:
+            proxy = random.choice(proxies)
+            try:
+                response = requests.get("https://httpbin.org/ip", proxies={"http:": proxy, "https:": proxy}, timeout=3)
+                break
+            except (ProxyError, Timeout):
+
+                pass
+
+        if response.status_code == 200:
+            return proxy
+        else:
+            raise Exception("No working proxy found!")
 
     @staticmethod
     def get_response(url: str, proxy: str) -> Response:
         """Fetches a response from a given url using a select proxy"""
-        return requests.get(url, proxies={"http:": proxy, "https:": proxy})
+        headers = {
+            "User-Agent": random.choice([
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36",
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
+            ])
+        }
+        retries = 3
+        for _ in range(retries):
+            try:
+                response = requests.get(url, headers=headers, proxies={"http:": proxy, "https:": proxy}, timeout=5)
+                if response.status_code == 200:
+                    return response
+            except (ProxyError, Timeout) as e:
+                print(f"Request failed: {e}")
+        raise Exception(f"Failed to retrieve html using {retries} retries")
 
     @staticmethod
     def get_json_data(response: Response):
@@ -118,6 +147,11 @@ class Scraper:
 
 
 def scraper_boligsiden(postal_code: str):
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(message)s")
+    logger = logging.getLogger()
+
+    logger.info("Scraping started...")
+
     page_number = 1
     combined_results = []  # Initialize a list to store combined JSON results
 
@@ -143,5 +177,7 @@ def scraper_boligsiden(postal_code: str):
         combined_results.extend(on_market_data)
 
         page_number += 1  # Increment the page number to fetch the next page
+
+    logger.info("Scraping ended")
 
     return json.dumps(combined_results)
