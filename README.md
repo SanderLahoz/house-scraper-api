@@ -11,16 +11,26 @@ This project scrapes housing data and retrieves external API information.
    ```bash
    git clone https://github.com/SanderLahoz/house-scraper-api.git
    ```
-3. Create and activate a virtual environment:
+2. Create and activate a virtual environment:
    ```bash
    python -m venv venv
+   ```
+
+   2.1 On windows
+   ```bash
+   .\venv\Scripts\activate
+   ```
+
+   2.2 On MacOS/Linux
+   ```bash
    source venv/bin/activate
    ```
-4. Install dependencies:
+
+3. Install dependencies:
    ```bash
    pip install -r requirements.txt
    ```
-5. Run the scraper:
+4. Run the scraper:
    ```bash
    python main.py
    ```
